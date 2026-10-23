@@ -1,7 +1,7 @@
 package model;
 
 public class Person2 {
-    private int id;
+    private Integer id;
     private String fullName;
     private String gender;
     private String phoneNumber;
@@ -10,7 +10,7 @@ public class Person2 {
 
     public Person2() {}
 
-    public Person2(int id, String fullName, String gender, String phoneNumber, String email, String address) {
+    public Person2(Integer id, String fullName, String gender, String phoneNumber, String email, String address) {
         this.id = id;
         this.fullName = fullName;
         this.gender = gender;
@@ -19,9 +19,8 @@ public class Person2 {
         this.address = address;
     }
 
-    // Getters and Setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
