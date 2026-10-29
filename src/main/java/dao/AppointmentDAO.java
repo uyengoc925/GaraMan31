@@ -1,10 +1,12 @@
 package dao;
 
 import model.Appointment2;
-import model.TimeSlotDTO;
+
+import javax.print.DocFlavor;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class AppointmentDAO extends DAO {
@@ -13,44 +15,34 @@ public class AppointmentDAO extends DAO {
         super();
     }
     // lấy thông tin lịch hẹn còn trống
-    public List<TimeSlotDTO> getAvailableTimeSlots(LocalDate date) {
-        List<TimeSlotDTO> slots = new ArrayList<>();
-        String[] defaultSlots = {"08:00 - 10:00", "10:00 - 11:30", "13:30 - 15:30", "15:30 - 17:00"};
-
-        String sql = "SELECT time, COUNT(*) as booked FROM tblAppointment2 WHERE date = ? AND time = ? GROUP BY time";
-        for (String slot : defaultSlots) {
-            String startTimeStr = slot.split(" - ")[0] + ":00";
-            int count = 0;
-            try {
-                PreparedStatement ps = con.prepareStatement(sql);
-                ps.setDate(1, Date.valueOf(date));
-                ps.setTime(2, Time.valueOf(startTimeStr));
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) {
-                    count = rs.getInt("booked");
+    public HashMap<String, Integer> getAvailableTimeSlot(java.sql.Date date) throws SQLException {
+        HashMap<String, Integer> booked = new HashMap<>();
+        String sql = "SELECT `time` AS start_time, COUNT(*) AS booked "
+                + "FROM tblAppointment2 "
+                + "WHERE `date` = ? AND status <> 'Đã hủy' "
+                + "GROUP BY `time`";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDate(1, date);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    booked.put(rs.getTime("start_time").toString(), rs.getInt("booked"));
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
-            slots.add(new TimeSlotDTO(slot, count));
         }
-        return slots;
+        return booked;
     }
+
     // kiểm tra chỗ còn trống không
-    public boolean checkSlotAvailable(LocalDate date, String timeStr) {
-        String sql = "SELECT COUNT(*) as booked FROM tblAppointment2 WHERE date = ? AND time = ?";
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setDate(1, Date.valueOf(date));
-            ps.setTime(2, Time.valueOf(timeStr));
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("booked") < 5;
+    public boolean checkSlotAvailable(java.time.LocalDate date, String startTime) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM tblAppointment2 "
+                + "WHERE `date` = ? AND `time` = ? AND status <> 'Đã hủy'";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDate(1, java.sql.Date.valueOf(date));
+            ps.setTime(2, java.sql.Time.valueOf(startTime));   // "08:00:00"
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) < 5;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
-        return true;
     }
 // tạo lịch hẹn
     public boolean createAppointment(Appointment2 appointment) {

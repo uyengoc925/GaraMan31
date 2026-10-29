@@ -1,20 +1,41 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+        <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="dao.AppointmentDAO" %>
-<%@ page import="model.TimeSlotDTO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.time.LocalDate" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.sql.Date" %>
+<%@ page import="com.mysql.cj.protocol.FullReadInputStream" %>
 <%
     request.setCharacterEncoding("UTF-8");
 
     // Lấy ngày đã chọn từ URL parameter, nếu chưa chọn thì mặc định là ngày hôm nay
-    String dateParam = request.getParameter("date");
-    LocalDate selectedDate = (dateParam != null && !dateParam.trim().isEmpty())
-            ? LocalDate.parse(dateParam) : LocalDate.now();
-
+    String dateParam = request.getParameter("inSelectedDate");
+    if (dateParam == null || dateParam.trim().isEmpty()) {
+        dateParam = request.getParameter("date");
+    }
+    LocalDate selectedDate;
+    if (dateParam != null && !dateParam.trim().isEmpty() && !"null".equalsIgnoreCase(dateParam.trim())) {
+        try {
+            selectedDate = LocalDate.parse(dateParam.trim());
+        } catch (Exception e) {
+            selectedDate = LocalDate.now(); // Gán mặc định nếu định dạng chuỗi bị sai
+        }
+    } else {
+        selectedDate = LocalDate.now();
+    }
+    String[][] SLOTS = {
+            {"08:00:00", "10:00:00"},
+            {"10:00:00", "11:30:00"},
+            {"13:30:00", "15:30:00"},
+            {"15:30:00", "17:00:00"}
+    };
+    int CAPACITY = 5;
     // Gọi DAO để lấy danh sách các khung giờ và số lượt đã đặt trong ngày đã chọn
     AppointmentDAO appointmentDAO = new AppointmentDAO();
-    List<TimeSlotDTO> timeSlots = appointmentDAO.getAvailableTimeSlots(selectedDate);
-
+    HashMap<String, Integer> booked = appointmentDAO.getAvailableTimeSlot(Date.valueOf(selectedDate));
+    if (booked == null) {
+        booked = new HashMap<>();
+    }
     // Lấy thông báo lỗi (nếu có từ doBookAppointment.jsp chuyển về)
     String errorMessage = (String) request.getAttribute("errorMessage");
     if (errorMessage == null) {
@@ -89,20 +110,20 @@
     <h2>FORM ĐẶT LỊCH HẸN TRỰC TUYẾN</h2>
 
     <% if (errorMessage != null && !errorMessage.isEmpty()) { %>
-    <div class="alert-error"><%= errorMessage %></div>
+    <div class="alert-error"><%=errorMessage%></div>
     <% } %>
 
     <!-- Form Chọn Ngày hẹn (Gửi GET để tự làm mới danh sách khung giờ) -->
     <form method="GET" action="UIBookAppointment.jsp" id="dateForm">
         <div class="form-group">
             <label for="date">Chọn Ngày hẹn:</label>
-            <input type="date" id="date" name="date" value="<%= selectedDate %>" min="<%= LocalDate.now() %>" onchange="document.getElementById('dateForm').submit()"/>
+            <input type="date" id="date" name="inSelectedDate" value="<%=selectedDate%>" min="<%=LocalDate.now()%>" onchange="document.getElementById('dateForm').submit()"/>
         </div>
     </form>
 
     <!-- Form Đặt Lịch Hẹn (Gửi POST sang doBookAppointment.jsp để xử lý lưu CSDL) -->
     <form method="POST" action="doBookAppointment.jsp">
-        <input type="hidden" name="date" value="<%= selectedDate %>"/>
+        <input type="hidden" name="inSelectedDate" value="<%=selectedDate%>"/>
 
         <h3>1. Danh sách Khung giờ hẹn</h3>
         <table>
@@ -118,25 +139,31 @@
             </thead>
             <tbody>
             <%
-                int stt = 1;
-                for (TimeSlotDTO slot : timeSlots) {
-                    boolean isFull = "Đã đầy".equals(slot.getStatus());
+                int index = 1;
+                for (String[] s : SLOTS) {
+                    String startTime = s[0];
+                    String endTime = s[1];
+                    int n = booked.getOrDefault(startTime, 0);
+                    boolean full = n >= CAPACITY;
+                    String label = startTime.substring(0, 5) + " - " + endTime.substring(0, 5);
             %>
-            <tr class="<%= isFull ? "disabled-row" : "" %>">
-                <td><%= stt++ %></td>
-                <td><%= slot.getTimeSlot() %></td>
-                <td><%= slot.getBookedCount() %></td>
-                <td><%= slot.getCapacity() %></td>
+            <tr class="<%= full ? "disabled-row" : "" %>">
+                <td><%= index++ %></td>
+                <td><%= label %></td>
+                <td><%= n %></td>
+                <td><%= CAPACITY %></td>
                 <td>
-                        <span class="<%= isFull ? "badge-danger" : "badge-success" %>">
-                            <%= slot.getStatus() %>
-                        </span>
+                    <% if (full) { %>
+                    <span class="badge-danger">Đã đầy</span>
+                    <% } else { %>
+                    <span class="badge-success">Còn trống</span>
+                    <% } %>
                 </td>
                 <td>
-                    <% if (!isFull) { %>
-                    <input type="radio" name="timeSlot" value="<%= slot.getTimeSlot() %>" required/> Chọn
+                    <% if (!full) { %>
+                    <input type="radio" name="radTimeSlot" value="<%= startTime.substring(0, 5) %> - <%= endTime.substring(0, 5) %>" required/>
                     <% } else { %>
-                    <button type="button" disabled style="padding: 4px 8px;">Khóa</button>
+                    <input type="radio" disabled/>
                     <% } %>
                 </td>
             </tr>
@@ -147,37 +174,39 @@
         <h3>2. Thông tin Khách hàng & Phương tiện</h3>
         <div class="form-group">
             <label>Họ và tên (*):</label>
-            <input type="text" name="fullName" placeholder="Ví dụ: Nguyễn Văn An" required/>
+            <input type="text" name="txtFullName" placeholder="Ví dụ: Nguyễn Văn An" required/>
         </div>
         <div class="form-group">
             <label>Giới tính:</label>
-            <select name="gender">
+            <select name="cboGender">
                 <option value="Nam">Nam</option>
                 <option value="Nữ">Nữ</option>
+                <option value="Khác">Khác</option>
+
             </select>
         </div>
         <div class="form-group">
             <label>Số điện thoại (*):</label>
-            <input type="tel" name="phoneNumber" pattern="[0-9]{10}" placeholder="Nhập đủ 10 chữ số" required/>
+            <input type="tel" name="txtPhoneNumber" pattern="[0-9]{10}" placeholder="Nhập đủ 10 chữ số" required/>
         </div>
         <div class="form-group">
             <label>Biển số xe (*):</label>
-            <input type="text" name="licensePlate" placeholder="Ví dụ: 30H-123.45" required/>
+            <input type="text" name="txtLicensePlate" placeholder="Ví dụ: 30H-123.45" required/>
         </div>
         <div class="form-group">
             <label>Hãng xe:</label>
-            <input type="text" name="brand" placeholder="Ví dụ: Toyota" required/>
+            <input type="text" name="txtBrand" placeholder="Ví dụ: Toyota" required/>
         </div>
         <div class="form-group">
-            <label>Loại xe / Dòng xe:</label>
-            <input type="text" name="vehicleType" placeholder="Ví dụ: Cross" required/>
+            <label>Loại xe:</label>
+            <input type="text" name="txtVehicleType" placeholder="Ví dụ: Cross" required/>
         </div>
         <div class="form-group">
             <label>Màu xe:</label>
-            <input type="text" name="color" placeholder="Ví dụ: Đỏ" required/>
+            <input type="text" name="txtColor" placeholder="Ví dụ: Đỏ" required/>
         </div>
 
-        <button type="submit" class="btn-submit">Xác nhận đặt lịch</button>
+        <button type="submit" class="btn-submit" name="btnConfirmBooking"  >Xác nhận đặt lịch</button>
     </form>
 </div>
 

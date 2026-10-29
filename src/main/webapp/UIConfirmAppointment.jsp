@@ -4,16 +4,20 @@
 <%
     // Lấy thông tin lịch hẹn mới tạo ra từ Session
     Appointment2 appointment = (Appointment2) session.getAttribute("createdAppointment");
-
-    // Nếu không có dữ liệu trong session thì đẩy về trang chủ
+    // Format mã lịch hẹn dạng LHyyyyMMdd-00X
     if (appointment == null) {
-        response.sendRedirect("UIPublicHome.jsp");
+       // gui thong bao erro den lich hen - va gui lai
+
         return;
     }
-
-    // Format mã lịch hẹn dạng LHyyyyMMdd-00X
     String formattedDate = appointment.getDate().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     String appointmentCode = "LH" + formattedDate + "-" + String.format("%03d", appointment.getId());
+    String[][] SLOTS = {
+            {"08:00:00", "10:00:00"},
+            {"10:00:00", "11:30:00"},
+            {"13:30:00", "15:30:00"},
+            {"15:30:00", "17:00:00"}
+    };
 %>
 <!DOCTYPE html>
 <html>
@@ -109,6 +113,7 @@
             <td class="label">Thời gian hẹn:</td>
             <td class="value">
                 <strong style="color: #dc3545;">
+<%--                    // can hien thi ca khung gio hen--%>
                     <%= appointment.getTime() %>, ngày <%= appointment.getDate() %>
                 </strong>
             </td>
@@ -120,7 +125,7 @@
             // Xóa thông tin khỏi Session sau khi hiển thị xong để tránh trùng lặp khi F5
             session.removeAttribute("createdAppointment");
         %>
-        <button type="submit" class="btn-home">Oke</button>
+        <button type="submit" class="btn-home" name="btnOk" >Oke</button>
     </form>
 </div>
 
