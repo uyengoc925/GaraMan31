@@ -3,6 +3,7 @@ package dao;
 import model.Appointment2;
 
 import javax.print.DocFlavor;
+import java.nio.file.attribute.AclEntryPermission;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -67,5 +68,14 @@ public class AppointmentDAO extends DAO {
             e.printStackTrace();
         }
         return false;
+    }
+    public Appointment2 getAppointment(int idAppointment)throws SQLException{
+        String sql = "";
+        try{
+
+        }catch (SQLException e){
+
+        }
+
     }
 }

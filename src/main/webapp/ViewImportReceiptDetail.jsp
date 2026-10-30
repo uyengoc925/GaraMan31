@@ -3,14 +3,15 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
+    // thông tin nhận từ trang trước
     int idReceipt = Integer.parseInt(request.getParameter("idReceipt"));
-    int idSupplier = Integer.parseInt(request.getParameter("idSupplier"));
+    int idSupplier = Integer.parseInt(request.getParameter("idSupplier")); // để truyền lại tran gtruowcs
     String startDateStr = request.getParameter("startDate");
     String endDateStr = request.getParameter("endDate");
-
+    // lấy thông tin các lần nhập hàng
     ImportReceiptDAO receiptDAO = new ImportReceiptDAO();
     ImportReceipt2 receipt = receiptDAO.getImportReceipt(idReceipt);
-
+    // thông tin nhập hàng chit iết
     ImportReceiptDetailDAO detailDAO = new ImportReceiptDetailDAO();
     List<ImportReceiptDetail2> listDetails = detailDAO.getImportReceiptDetail(idReceipt);
 

@@ -3,21 +3,22 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
+    // dữ liệu nhận từ ViewSupplierStatistics
     int idSupplier = Integer.parseInt(request.getParameter("idSupplier"));
     String startDateStr = request.getParameter("startDate");
     String endDateStr = request.getParameter("endDate");
-
+    // chuyển dạng String sang LocalDate
     LocalDate startDate = LocalDate.parse(startDateStr);
     LocalDate endDate = LocalDate.parse(endDateStr);
-
+    // lấy dữ liệu Supplier từ idsupplier nhận được từ ViewSupplierStatistics
     SupplierDAO supplierDAO = new SupplierDAO();
     Supplier2 supplier = supplierDAO.getSupplier(idSupplier);
-
+    // Lấy thông tin lịch sử nhập hàng từ nhà cung cấp
     ImportReceiptDAO receiptDAO = new ImportReceiptDAO();
     List<ImportReceipt2> listReceipts = receiptDAO.getImportReceiptsBySupplier(idSupplier, startDate, endDate);
-
-    double grandTotalValue = 0;
-    int grandTotalQty = 0;
+    // tính tổng giá trị
+    double grandTotalValue = 0; // tổng tiền các lần
+    int grandTotalQty = 0; // tổng số lượng
     for (ImportReceipt2 r : listReceipts) {
         grandTotalValue += r.getTotalImportAmount();
         grandTotalQty += r.getTotalQuantity();
@@ -98,7 +99,7 @@
     </c:forEach>
     <tr class="total-row">
         <td colspan="4" style="text-align: right;">Tổng cộng</td>
-        <td>${grandTotalQty}</td> <!-- Thay ${totalQty} thành ${grandTotalQty} -->
+        <td>${grandTotalQty}</td>
         <td style="text-align: right;"><fmt:formatNumber value="${grandTotalValue}" type="number" groupingUsed="true"/></td>
         <td></td>
     </tr>

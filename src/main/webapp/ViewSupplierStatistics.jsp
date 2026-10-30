@@ -7,8 +7,8 @@
     String endDateStr = request.getParameter("endDate");
 
     // Lấy ngày mặc định (01/08/2026 - 31/08/2026) theo đúng mẫu dữ liệu
-    if (startDateStr == null || startDateStr.trim().isEmpty()) startDateStr = "2026-08-01";
-    if (endDateStr == null || endDateStr.trim().isEmpty()) endDateStr = "2026-08-31";
+    if (startDateStr == null || startDateStr.trim().isEmpty()) startDateStr = "2026-09-30"; // trước ngày hôm nay 1 tháng
+    if (endDateStr == null || endDateStr.trim().isEmpty()) endDateStr = "2026-10-30"; // ngày hôm nay
 
     LocalDate startDate = LocalDate.parse(startDateStr);
     LocalDate endDate = LocalDate.parse(endDateStr);
@@ -67,7 +67,7 @@
         </div>
         <div class="action-btns">
             <a href="ViewReportMenu.jsp" class="btn-action">Quay lại</a>
-            <button type="submit" class="btn-submit">Xem thống kê</button>
+            <button type="submit" class="btn-submit" name = "btnViewStatistics">Xem thống kê</button>
         </div>
     </div>
 </form>
@@ -95,6 +95,7 @@
             <td style="text-align: right;"><fmt:formatNumber value="${stat.totalImportValue}" type="number" groupingUsed="true"/></td>
             <td>
                 <a class="link-detail" href="ViewSupplierImportHistory.jsp?idSupplier=${stat.id}&startDate=${startDate}&endDate=${endDate}">Xem chi tiết</a>
+<%--                gửi id supplier và startDate, endDate sang xem lịch sử nhập hàng--%>
             </td>
         </tr>
     </c:forEach>
@@ -105,6 +106,7 @@
         <td style="text-align: right;"><fmt:formatNumber value="${totalValueAll}" type="number" groupingUsed="true"/></td>
         <td></td>
     </tr>
+
     </tbody>
 </table>
 </body>
