@@ -1,5 +1,5 @@
         <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="dao.AppointmentDAO" %>
+<%@ page import="dao.Appointment2DAO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.time.LocalDate" %>
 <%@ page import="java.util.HashMap" %>
@@ -31,7 +31,7 @@
     };
     int CAPACITY = 5;
     // Gọi DAO để lấy danh sách các khung giờ và số lượt đã đặt trong ngày đã chọn
-    AppointmentDAO appointmentDAO = new AppointmentDAO();
+    Appointment2DAO appointmentDAO = new Appointment2DAO();
     HashMap<String, Integer> booked = appointmentDAO.getAvailableTimeSlot(Date.valueOf(selectedDate));
     if (booked == null) {
         booked = new HashMap<>();
@@ -114,7 +114,7 @@
     <% } %>
 
     <!-- Form Chọn Ngày hẹn (Gửi GET để tự làm mới danh sách khung giờ) -->
-    <form method="GET" action="UIBookAppointment.jsp" id="dateForm">
+    <form method="GET" action="ViewBookAppointment.jsp" id="dateForm">
         <div class="form-group">
             <label for="date">Chọn Ngày hẹn:</label>
             <input type="date" id="date" name="inSelectedDate" value="<%=selectedDate%>" min="<%=LocalDate.now()%>" onchange="document.getElementById('dateForm').submit()"/>
@@ -194,15 +194,15 @@
             <input type="text" name="txtLicensePlate" placeholder="Ví dụ: 30H-123.45" required/>
         </div>
         <div class="form-group">
-            <label>Hãng xe:</label>
+            <label>Hãng xe (*):</label>
             <input type="text" name="txtBrand" placeholder="Ví dụ: Toyota" required/>
         </div>
         <div class="form-group">
-            <label>Loại xe:</label>
+            <label>Loại xe (*):</label>
             <input type="text" name="txtVehicleType" placeholder="Ví dụ: Cross" required/>
         </div>
         <div class="form-group">
-            <label>Màu xe:</label>
+            <label>Màu xe (*):</label>
             <input type="text" name="txtColor" placeholder="Ví dụ: Đỏ" required/>
         </div>
 

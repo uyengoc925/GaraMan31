@@ -120,7 +120,7 @@
         </tr>
     </table>
 
-    <form action="UIPublicHome.jsp" method="GET">
+    <form action="ViewPublicHome.jsp" method="GET">
         <%
             // Xóa thông tin khỏi Session sau khi hiển thị xong để tránh trùng lặp khi F5
             session.removeAttribute("createdAppointment");

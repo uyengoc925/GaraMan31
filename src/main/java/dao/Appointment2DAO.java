@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.sql.Date;
 
 public class AppointmentDAO extends DAO {
 
@@ -16,7 +17,7 @@ public class AppointmentDAO extends DAO {
         super();
     }
     // lấy thông tin lịch hẹn còn trống
-    public HashMap<String, Integer> getAvailableTimeSlot(java.sql.Date date) throws SQLException {
+    public HashMap<String, Integer> getAvailableTimeSlot(Date date) throws SQLException {
         HashMap<String, Integer> booked = new HashMap<>();
         String sql = "SELECT `time` AS start_time, COUNT(*) AS booked "
                 + "FROM tblAppointment2 "
@@ -69,13 +70,5 @@ public class AppointmentDAO extends DAO {
         }
         return false;
     }
-    public Appointment2 getAppointment(int idAppointment)throws SQLException{
-        String sql = "";
-        try{
 
-        }catch (SQLException e){
-
-        }
-
-    }
 }
