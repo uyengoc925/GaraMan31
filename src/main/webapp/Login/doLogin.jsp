@@ -14,11 +14,17 @@ employee2.setUsername(username);
 employee2.setPassword(password);
 Employee2DAO dao = new Employee2DAO();
 boolean isValid = dao.CheckLogin(employee2);
-if (isValid && (employee2.getPosition().equalsIgnoreCase("Manager"))) {
+boolean isManager = employee2.getPosition() != null && 
+    (employee2.getPosition().equalsIgnoreCase("Manager") || 
+     employee2.getPosition().equalsIgnoreCase("Quản lý") || 
+     employee2.getPosition().equalsIgnoreCase("Quan ly"));
+
+if (isValid && isManager) {
     // Lưu thông tin người dùng vào session
     request.getSession().setAttribute("username", username);
+    request.getSession().setAttribute("user", employee2);
     // Chuyển hướng đến trang chính của ứng dụng
-    response.sendRedirect("Manager/ViewHome.jsp");
+    response.sendRedirect(request.getContextPath() + "/Manager/ViewHome.jsp");
 } else {
     // Nếu đăng nhập thất bại, chuyển hướng trở lại trang đăng nhập với thông báo lỗi
     response.sendRedirect("login.jsp?err=fail");

@@ -1,29 +1,43 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="dao.SupplierStatisticsDAO, model.SupplierStatistics2, java.util.List, java.time.LocalDate, java.time.format.DateTimeFormatter" %>
+<%@ page import="dao.SupplierStatistics2DAO, model.SupplierStatistics2, java.util.List, java.time.LocalDate, java.util.ArrayList" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
     String startDateStr = request.getParameter("startDate");
     String endDateStr = request.getParameter("endDate");
+    if (startDateStr == null) startDateStr = "";
+    if (endDateStr == null) endDateStr = "";
 
-    // Lấy ngày mặc định (01/08/2026 - 31/08/2026) theo đúng mẫu dữ liệu
-    if (startDateStr == null || startDateStr.trim().isEmpty()) startDateStr = "2026-08-01";
-    if (endDateStr == null || endDateStr.trim().isEmpty()) endDateStr = "2026-08-31";
 
-    LocalDate startDate = LocalDate.parse(startDateStr);
-    LocalDate endDate = LocalDate.parse(endDateStr);
 
-    SupplierStatisticsDAO dao = new SupplierStatisticsDAO();
-    List<SupplierStatistics2> listStats = dao.getSupplierImportStatistics(startDate, endDate);
 
-    int totalCountAll = 0;
+    List<SupplierStatistics2> listStats = new java.util.ArrayList<>();
+       int totalCountAll = 0;
     int totalQuantityAll = 0;
     double totalValueAll = 0;
+    String errorMessage = null;
+    boolean searched = !startDateStr.trim().isEmpty() && !endDateStr.trim().isEmpty();
+    if (searched) {
+        try {
+            LocalDate startDate = LocalDate.parse(startDateStr.trim());
+            LocalDate endDate = LocalDate.parse(endDateStr.trim());
 
-    for (SupplierStatistics2 s : listStats) {
-        totalCountAll += s.getTotalImportCount();
-        totalQuantityAll += s.getTotalImportQuantity();
-        totalValueAll += s.getTotalImportValue();
+            if (endDate.isBefore(startDate)) {
+                errorMessage = "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.";
+            } else {
+                SupplierStatistics2DAO dao = new SupplierStatistics2DAO();
+                listStats = dao.getSupplierImportStatistics(startDate, endDate);
+
+                for (SupplierStatistics2 s : listStats) {
+                    totalCountAll += s.getTotalImportReceipts();
+                    totalQuantityAll += s.getTotalImportQuantity();
+                    totalValueAll += s.getTotalImportValue();
+                }
+            }
+        } catch (java.time.format.DateTimeParseException e) {
+            errorMessage = "Ngày không hợp lệ.";
+            searched = false;
+        }
     }
 
     request.setAttribute("listStats", listStats);
@@ -32,6 +46,8 @@
     request.setAttribute("totalCountAll", totalCountAll);
     request.setAttribute("totalQuantityAll", totalQuantityAll);
     request.setAttribute("totalValueAll", totalValueAll);
+    request.setAttribute("errorMessage", errorMessage);
+    request.setAttribute("searched", searched);
 %>
 <!DOCTYPE html>
 <html>
@@ -53,17 +69,21 @@
         tr:nth-child(even) { background-color: #f2f2f2; }
         .total-row { font-weight: bold; background-color: #e6f0ff !important; }
         a.link-detail { color: #002B66; text-decoration: underline; font-weight: bold; }
+        td.num { text-align: right; padding-right: 20px; }
     </style>
 </head>
+
 <body>
 <h2>THỐNG KÊ NHÀ CUNG CẤP THEO LƯỢNG HÀNG NHẬP</h2>
-
+<c:if test="${not empty errorMessage}">
+    <p style="color: red; font-weight: bold;">${errorMessage}</p>
+</c:if>
 <form method="GET" action="ViewSupplierStatistics.jsp">
     <div class="filter-box">
         <div class="filter-inputs">
             <span>CHỌN KHOẢNG THỜI GIAN TRA CỨU</span><br><br>
-            Từ ngày (*): <input type="date" name="startDate" value="${startDate}" required>
-            Đến ngày (*): <input type="date" name="endDate" value="${endDate}" required>
+            Từ ngày (*): <input type="date" id="startDate" name="startDate" value="${startDate}" required>
+            Đến ngày (*): <input type="date" id="endDate" name="endDate" value="${endDate}" min="${startDate}" required>
         </div>
         <div class="action-btns">
             <a href="ViewReportMenu.jsp" class="btn-action">Quay lại</a>
@@ -85,27 +105,49 @@
     </tr>
     </thead>
     <tbody>
-    <c:forEach var="stat" items="${listStats}" varStatus="loop">
-        <tr>
-            <td>${loop.index + 1}</td>
-            <td>NCC<fmt:formatNumber value="${stat.id}" pattern="000"/></td>
-            <td style="text-align: left;">${stat.supplierName}</td>
-            <td>${stat.totalImportCount}</td>
-            <td>${stat.totalImportQuantity}</td>
-            <td style="text-align: right;"><fmt:formatNumber value="${stat.totalImportValue}" type="number" groupingUsed="true"/></td>
-            <td>
-                <a class="link-detail" href="ViewSupplierImportHistory.jsp?idSupplier=${stat.id}&startDate=${startDate}&endDate=${endDate}">Xem chi tiết</a>
-            </td>
-        </tr>
-    </c:forEach>
-    <tr class="total-row">
-        <td colspan="3" style="text-align: right; font-weight: bold;">TỔNG CỘNG</td>
-        <td>${totalCountAll}</td>
-        <td>${totalQuantityAll}</td>
-        <td style="text-align: right;"><fmt:formatNumber value="${totalValueAll}" type="number" groupingUsed="true"/></td>
-        <td></td>
-    </tr>
+    <c:choose>
+        <c:when test="${not searched}">
+            <tr><td colspan="7">Vui lòng chọn khoảng thời gian rồi bấm "Xem thống kê".</td></tr>
+        </c:when>
+        <c:otherwise>
+            <c:forEach var="stat" items="${listStats}" varStatus="loop">
+                <tr>
+                    <td>${loop.index + 1}</td>
+                    <td>NCC<fmt:formatNumber value="${stat.id}" pattern="000"/></td>
+                    <td style="text-align: left;">${stat.supplierName}</td>
+                    <td  class="num"> ${stat.totalImportReceipts}</td>
+                    <td  class="num">${stat.totalImportQuantity}</td>
+                    <td  class="num" ><fmt:formatNumber value="${stat.totalImportValue}" type="number" groupingUsed="true"/></td>true"/></td>
+                    <td>
+                        <a class="link-detail" href="ViewSupplierImportHistory.jsp?idSupplier=${stat.id}&startDate=${startDate}&endDate=${endDate}">Xem chi tiết</a>
+                    </td>
+                </tr>
+            </c:forEach>
+
+            <c:if test="${empty listStats}">
+                <tr><td colspan="7">Không có dữ liệu trong khoảng thời gian này.</td></tr>
+            </c:if>
+
+            <tr class="total-row">
+                <td colspan="3" style="text-align: left; font-weight: bold;">TỔNG CỘNG</td>
+                <td  class="num">${totalCountAll}</td>
+                <td  class="num">${totalQuantityAll}</td>
+                <td class="num"><fmt:formatNumber value="${stat.totalImportValue}" type="number" groupingUsed="true"/></td>
+                <td></td>
+            </tr>
+        </c:otherwise>
+    </c:choose>
     </tbody>
 </table>
+<script>
+    var startInput = document.getElementById('startDate');
+    var endInput = document.getElementById('endDate');
+    startInput.addEventListener('change', function () {
+        endInput.min = startInput.value;
+        if (endInput.value && startInput.value && endInput.value < startInput.value) {
+            endInput.value = startInput.value;
+        }
+    });
+</script>
 </body>
 </html>

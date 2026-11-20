@@ -8,7 +8,7 @@ public class DAO {
 
     public DAO() {
         if (con == null) {
-            String dbUrl = "jdbc:mysql://localhost:3306/garaman_db?useSSL=false&serverTimezone=UTC";
+            String dbUrl = "jdbc:mysql://localhost:3306/garaman_db?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8";
             String dbUser = "root";
             String dbPassword = "123456";
             try {

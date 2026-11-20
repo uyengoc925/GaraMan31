@@ -20,8 +20,8 @@ pageEncoding="UTF-8" import="java.util.ArrayList,dao.*,model.*"%>
         request.getParameter("err").equalsIgnoreCase("timeout")) {
     %> <h4> Hết phiên làm việc. Vui lòng đăng nhập lại!</h4>
     <% } else if(request.getParameter("err") !=null && request.getParameter("err").equalsIgnoreCase("fail")){ %>
-    <h4 style="color: red;"> Sai tên đăng nhập/ mật khẩu!</h4> <%}
-    %>%>
+    <h4 style="color: red;"> Sai tên đăng nhập/ mật khẩu!</h4>
+    <% } %>
 
     <form name="dangnhap" action="doLogin.jsp" method="post">
         <table>
@@ -40,7 +40,5 @@ pageEncoding="UTF-8" import="java.util.ArrayList,dao.*,model.*"%>
             </tr>
         </table>
     </form>
-    </form>
-
 </body>
 </html>

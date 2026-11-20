@@ -2,22 +2,23 @@ package model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Date;
 
 public class Appointment2 {
     private int id;
-    private LocalDate date;
+    private Date date;
     private LocalTime time;
     private String status;
     private Customer2 customer;
     private Vehicle2 vehicle;
-
+    private SalesStaff2 salesStaff;
     public Appointment2() {}
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
+    public Date getDate() { return date; }
+    public void setDate(Date date) { this.date = date; }
 
     public LocalTime getTime() { return time; }
     public void setTime(LocalTime time) { this.time = time; }
@@ -30,4 +31,7 @@ public class Appointment2 {
 
     public Vehicle2 getVehicle() { return vehicle; }
     public void setVehicle(Vehicle2 vehicle) { this.vehicle = vehicle; }
+
+    public SalesStaff2 getSalesStaff() { return salesStaff; }
+    public void setSalesStaff(SalesStaff2 salesStaff) { this.salesStaff = salesStaff; }
 }

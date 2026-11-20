@@ -5,9 +5,9 @@ import java.time.LocalDate;
 public class SupplierStatistics2 extends Supplier2 {
     private LocalDate startDate;
     private LocalDate endDate;
-    private Integer totalImportQuantity; // Tổng số lượng phụ tùng
+    private Integer totalImportReceipts; // Tổng số lượt nhập hàng
     private Double totalImportValue;     // Tổng tiền nhập (VNĐ)
-    private Integer totalImportCount;    // Số lượt nhập
+    private Integer totalImportQuantity;    // Số lượng linh kiện nhập
 
     public SupplierStatistics2() {
         super();
@@ -19,12 +19,12 @@ public class SupplierStatistics2 extends Supplier2 {
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
-    public Integer getTotalImportQuantity() { return totalImportQuantity; }
-    public void setTotalImportQuantity(Integer totalImportQuantity) { this.totalImportQuantity = totalImportQuantity; }
+    public Integer getTotalImportReceipts() { return totalImportReceipts; }
+    public void setTotalImportReceipts(Integer totalImportQuantity) { this.totalImportReceipts = totalImportQuantity; }
 
     public Double getTotalImportValue() { return totalImportValue; }
     public void setTotalImportValue(Double totalImportValue) { this.totalImportValue = totalImportValue; }
 
-    public Integer getTotalImportCount() { return totalImportCount; }
-    public void setTotalImportCount(Integer totalImportCount) { this.totalImportCount = totalImportCount; }
+    public Integer getTotalImportQuantity() { return totalImportQuantity; }
+    public void setTotalImportQuantity(Integer totalImportQuantity) { this.totalImportQuantity = totalImportQuantity; }
 }

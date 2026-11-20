@@ -2,25 +2,35 @@
 <%@ page import="dao.Appointment2DAO, dao.Customer2DAO, dao.Vehicle2DAO" %>
 <%@ page import="model.Appointment2, model.Customer2, model.Vehicle2" %>
 <%@ page import="java.time.LocalDate, java.time.LocalTime" %>
-<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.sql.Date" %>
+<%!
+    // Quay lại form đặt lịch, giữ nguyên dữ liệu đã nhập (forward cùng request)
+    private void back(HttpServletRequest request, HttpServletResponse response, String msg) throws Exception {
+        request.setAttribute("errorMessage", msg);
+        request.getRequestDispatcher("ViewBookAppointment2.jsp").forward(request, response);
+    }
+%>
 <%
     request.setCharacterEncoding("UTF-8");
 
     // Chỉ chấp nhận phương thức POST
     if (!"POST".equalsIgnoreCase(request.getMethod())) {
-        response.sendRedirect("ViewBookAppointment.jsp");
+        response.sendRedirect("ViewBookAppointment2.jsp");
         return;
     }
 
     String strDate = null;
     try {
         // 1. Thu thập dữ liệu từ Form
-        strDate = request.getParameter("date");
+        strDate = request.getParameter("inSelectedDate");
+        if (strDate == null || strDate.trim().isEmpty() || "null".equalsIgnoreCase(strDate.trim())) {
+            strDate = request.getParameter("date");
+        }
         if (strDate == null || strDate.trim().isEmpty() || "null".equalsIgnoreCase(strDate.trim())) {
             strDate = LocalDate.now().toString();
         }
         strDate = strDate.trim();
-       // Đảm bảo strDate không bao giờ là null hoặc chuỗi "null"
+        Date date = Date.valueOf(strDate);
         String strTimeSlot = request.getParameter("radTimeSlot");
 
         String fullName = request.getParameter("txtFullName");
@@ -32,16 +42,19 @@
         String color = request.getParameter("txtColor");
 
         if (strDate == null || strTimeSlot == null || fullName == null || phoneNumber == null || licensePlate == null) {
-            String errorMsg = URLEncoder.encode("Vui lòng điền đầy đủ các thông tin bắt buộc!", "UTF-8");
-            response.sendRedirect("ViewBookAppointment.jsp?inSelectedDate=" + strDate + "&error=" + errorMsg);
+            back(request, response, "Vui lòng điền đầy đủ các thông tin bắt buộc!");
             return;
         }
         if (!phoneNumber.matches("[0-9]{10}") || phoneNumber.charAt(0) != '0') {
-            String errorMsg = URLEncoder.encode("Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0!", "UTF-8");
-            response.sendRedirect("ViewBookAppointment.jsp?inSelectedDate=" + strDate + "&error=" + errorMsg);
+            back(request, response, "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0!");
             return;
         }
 
+        String plate = Vehicle2.normalizeLicensePlate(licensePlate);
+        if (plate == null) {
+            back(request, response, "Biển số xe không hợp lệ! Ví dụ đúng: 30H-123.45 hoặc 30LD-123.45");
+            return;
+        }
         String startTimeStr = strTimeSlot.split(" - ")[0] + ":00";
         LocalTime time = LocalTime.parse(startTimeStr);
 
@@ -50,29 +63,44 @@
         // 2. Kiểm tra sức chứa tại thời điểm bấm Xác nhận đặt lịch (Concurrency Check)
         boolean isSlotAvailable = appointmentDAO.checkSlotAvailable(date, startTimeStr);
         if (!isSlotAvailable) {
-            String errorMsg = URLEncoder.encode("Rất tiếc! Khung giờ " + strTimeSlot + " ngày " + strDate + " vừa được đăng ký hết chỗ. Vui lòng chọn khung giờ khác!", "UTF-8");
-            response.sendRedirect("ViewBookAppointment.jsp?inSelectedDate=" + strDate + "&error=" + errorMsg);
+            back(request, response, "Rất tiếc! Khung giờ " + strTimeSlot + " ngày " + strDate
+                    + " vừa được đăng ký hết chỗ. Vui lòng chọn khung giờ khác!");
             return;
         }
 
         // 3. Tìm hoặc Tạo mới Khách hàng
-        Customer2 customer = new Customer2();
-        customer.setFullName(fullName);
-        customer.setGender(gender);
-        customer.setPhoneNumber(phoneNumber);
-
         Customer2DAO customerDAO = new Customer2DAO();
-        customer = customerDAO.findOrCreateCustomer(customer);
+        Customer2 customerParam = new Customer2();
+        customerParam.setFullName(fullName);
+        customerParam.setGender(gender);
+        customerParam.setPhoneNumber(phoneNumber);
+        Customer2 customer = customerDAO.findCustomer(customerParam);
 
+        if(customer == null) {
+            customer = customerParam;
+            int customerId = customerDAO.createCustomer(customer);
+            if(customerId == 0){
+                throw new Exception("Không thể tạo khách hàng");
+            }
+            else{
+                customer.setId(customerId);
+            }
+        }
         // 4. Tìm hoặc Tạo mới Phương tiện
         Vehicle2 vehicle = new Vehicle2();
-        vehicle.setLicensePlate(licensePlate);
+        vehicle.setLicensePlate(plate);          // dùng biển số đã chuẩn hóa
         vehicle.setBrand(brand);
         vehicle.setVehicleType(vehicleType);
         vehicle.setColor(color);
 
         Vehicle2DAO vehicleDAO = new Vehicle2DAO();
-        vehicle = vehicleDAO.findOrCreateVehicle(vehicle, customer.getId());
+        Vehicle2 foundVehicle = vehicleDAO.findVehicle(vehicle, customer.getId());
+        if(foundVehicle == null) {
+            int vehicleId = vehicleDAO.createVehicle(vehicle, customer.getId());
+            vehicle.setId(vehicleId);
+        } else {
+            vehicle = foundVehicle;
+        }
 
         // 5. Khởi tạo đối tượng Lịch hẹn ở trạng thái "Chờ tiếp nhận"
         Appointment2 appointment = new Appointment2();
@@ -83,21 +111,17 @@
         appointment.setVehicle(vehicle);
 
         // 6. Thực hiện lưu chứng từ Lịch hẹn vào CSDL
-        boolean isSuccess = appointmentDAO.createAppointment(appointment);
+        int isSuccess = appointmentDAO.createAppointment(appointment);
 
-        if (isSuccess) {
-            // Lưu lịch hẹn vào Session để hiển thị ở trang xác nhận thành công
-            session.setAttribute("createdAppointment", appointment);
-            response.sendRedirect("ViewConfirmAppointment.jsp");
+        if (isSuccess != 0) {
+            session.setAttribute("createdAppointment", isSuccess); // appointmentId
+            response.sendRedirect("ViewConfirmAppointment2.jsp");
         } else {
-            String errorMsg = URLEncoder.encode("Lỗi hệ thống! Không thể khởi tạo lịch hẹn.", "UTF-8");
-            response.sendRedirect("ViewBookAppointment.jsp?inSelectedDate=" + strDate + "&error=" + errorMsg);
+            back(request, response, "Lỗi hệ thống! Không thể khởi tạo lịch hẹn.");
         }
 
     } catch (Exception e) {
         e.printStackTrace();
-        String errorMsg = URLEncoder.encode("Dữ liệu nhập vào không hợp lệ: " + e.getMessage(), "UTF-8");
-        // Truyền thêm inSelectedDate để trang UI không bị crash
-        response.sendRedirect("ViewBookAppointment.jsp?inSelectedDate=" + strDate + "&error=" + errorMsg);
+        back(request, response, "Dữ liệu nhập vào không hợp lệ: " + e.getMessage());
     }
 %>

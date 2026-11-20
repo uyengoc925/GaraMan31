@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="dao.ImportReceiptDAO, dao.ImportReceiptDetailDAO, model.ImportReceipt2, model.ImportReceiptDetail2, java.util.List, java.time.format.DateTimeFormatter" %>
+<%@ page import="dao.ImportReceipt2DAO, dao.ImportReceiptDetai2DAO, model.ImportReceipt2, model.ImportReceiptDetail2, java.util.List, java.time.format.DateTimeFormatter" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
@@ -8,21 +8,24 @@
     String startDateStr = request.getParameter("startDate");
     String endDateStr = request.getParameter("endDate");
 
-    ImportReceiptDAO receiptDAO = new ImportReceiptDAO();
+    ImportReceipt2DAO receiptDAO = new ImportReceipt2DAO();
     ImportReceipt2 receipt = receiptDAO.getImportReceipt(idReceipt);
 
-    ImportReceiptDetailDAO detailDAO = new ImportReceiptDetailDAO();
+    ImportReceiptDetai2DAO detailDAO = new ImportReceiptDetai2DAO();
     List<ImportReceiptDetail2> listDetails = detailDAO.getImportReceiptDetail(idReceipt);
 
     int totalQuantity = 0;
     double grandTotal = 0;
     for (ImportReceiptDetail2 d : listDetails) {
         totalQuantity += d.getImportQuantity();
-        grandTotal += d.getSubtotal();
+        grandTotal += d.getImportQuantity() * d.getImportUnitPrice();
+
     }
 
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     String formattedDateTime = receipt.getImportDateTime().format(dtf);
+    String receiptCode = "PN" + String.format("%06d", receipt.getId());
+    request.setAttribute("receiptCode", receiptCode);
 
     request.setAttribute("receipt", receipt);
     request.setAttribute("listDetails", listDetails);
@@ -60,7 +63,7 @@
 
 <div class="invoice-info">
     <div class="info-col">
-        <p><strong>Phiếu nhập:</strong> PN<fmt:parseDate value="${receipt.importDateTime}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDate" /><fmt:formatDate value="${parsedDate}" pattern="yyyyMMdd" />-<fmt:formatNumber value="${receipt.id}" pattern="00"/></p>
+        <p><strong>Phiếu nhập:</strong> ${receiptCode}</p>
         <p><strong>Nhà cung cấp:</strong> ${receipt.supplier.supplierName} (NCC<fmt:formatNumber value="${receipt.supplier.id}" pattern="000"/>)</p>
         <p><strong>Địa chỉ NCC:</strong> ${receipt.supplier.address}</p>
         <p><strong>Mã số thuế:</strong> ${receipt.supplier.taxCode}</p>
@@ -93,11 +96,10 @@
             <td>${detail.sparePart.unit}</td>
             <td>${detail.importQuantity}</td>
             <td style="text-align: right;"><fmt:formatNumber value="${detail.importUnitPrice}" type="number" groupingUsed="true"/></td>
-            <td style="text-align: right;"><fmt:formatNumber value="${detail.subtotal}" type="number" groupingUsed="true"/></td>
-        </tr>
+            <td style="text-align: right;"><fmt:formatNumber value="${detail.importQuantity * detail.importUnitPrice}" type="number" groupingUsed="true"/></td>      </tr>
     </c:forEach>
     <tr class="total-row">
-        <td colspan="4" style="text-align: right;">TỔNG CỘNG</td>
+        <td colspan="4" style="text-align: left;">TỔNG CỘNG</td>
         <td>${totalQuantity}</td>
         <td></td>
         <td style="text-align: right;"><fmt:formatNumber value="${grandTotal}" type="number" groupingUsed="true"/></td>

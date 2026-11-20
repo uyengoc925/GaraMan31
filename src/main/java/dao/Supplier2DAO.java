@@ -5,9 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class SupplierDAO extends DAO {
+public class Supplier2DAO extends DAO {
 
-    public SupplierDAO() {
+    public Supplier2DAO() {
         super();
     }
 

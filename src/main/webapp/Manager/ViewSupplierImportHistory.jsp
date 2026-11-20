@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="dao.SupplierDAO, dao.ImportReceiptDAO, model.Supplier2, model.ImportReceipt2, java.util.List, java.time.LocalDate, java.time.format.DateTimeFormatter" %>
+<%@ page import="dao.Supplier2DAO, dao.ImportReceipt2DAO, model.Supplier2, model.ImportReceipt2, java.util.List, java.time.LocalDate, java.time.format.DateTimeFormatter" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
@@ -10,15 +10,17 @@
     LocalDate startDate = LocalDate.parse(startDateStr);
     LocalDate endDate = LocalDate.parse(endDateStr);
 
-    SupplierDAO supplierDAO = new SupplierDAO();
+    Supplier2DAO supplierDAO = new Supplier2DAO();
     Supplier2 supplier = supplierDAO.getSupplier(idSupplier);
 
-    ImportReceiptDAO receiptDAO = new ImportReceiptDAO();
+    ImportReceipt2DAO receiptDAO = new ImportReceipt2DAO();
     List<ImportReceipt2> listReceipts = receiptDAO.getImportReceiptsBySupplier(idSupplier, startDate, endDate);
 
     double grandTotalValue = 0;
+    int grandTotalQty = 0;
     for (ImportReceipt2 r : listReceipts) {
         grandTotalValue += r.getTotalImportAmount();
+        grandTotalQty += r.getTotalQuantity();
     }
 
     // Đổi định dạng hiển thị khoảng thời gian dd/MM/yyyy
@@ -31,6 +33,7 @@
     request.setAttribute("startDate", startDateStr);
     request.setAttribute("endDate", endDateStr);
     request.setAttribute("grandTotalValue", grandTotalValue);
+    request.setAttribute("grandTotalQty", grandTotalQty);
 %>
 <!DOCTYPE html>
 <html>
@@ -87,15 +90,7 @@
             <td>PN<fmt:parseDate value="${receipt.importDateTime}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDate" /><fmt:formatDate value="${parsedDate}" pattern="yyyyMMdd" />-<fmt:formatNumber value="${receipt.id}" pattern="00"/></td>
             <td><fmt:parseDate value="${receipt.importDateTime}" pattern="yyyy-MM-dd'T'HH:mm" var="pDate" /><fmt:formatDate value="${pDate}" pattern="dd/MM/yyyy HH:mm:ss" /></td>
             <td>NV<fmt:formatNumber value="${receipt.warehouseStaff.id}" pattern="000"/></td>
-            <td>
-                <!-- Tự động đếm tổng SL sản phẩm bằng JSTL hoặc tính sẵn -->
-                <c:set var="qtyInReceipt" value="0"/>
-                <c:forEach var="d" items="${receipt.importReceiptDetails}">
-                    <c:set var="qtyInReceipt" value="${qtyInReceipt + d.importQuantity}"/>
-                </c:forEach>
-                <c:out value="${qtyInReceipt}"/>
-                <c:set var="totalQty" value="${totalQty + qtyInReceipt}" />
-            </td>
+            <td style="text-align: right;" >${receipt.totalQuantity}</td>
             <td style="text-align: right;"><fmt:formatNumber value="${receipt.totalImportAmount}" type="number" groupingUsed="true"/></td>
             <td>
                 <a class="link-detail" href="ViewImportReceiptDetail.jsp?idReceipt=${receipt.id}&idSupplier=${supplier.id}&startDate=${startDate}&endDate=${endDate}">Xem hóa đơn</a>
@@ -103,8 +98,8 @@
         </tr>
     </c:forEach>
     <tr class="total-row">
-        <td colspan="4" style="text-align: right;">Tổng cộng</td>
-        <td>${totalQty}</td>
+        <td colspan="4" style="text-align: left;">Tổng cộng</td>
+        <td style="text-align: right;" >${grandTotalQty}</td>
         <td style="text-align: right;"><fmt:formatNumber value="${grandTotalValue}" type="number" groupingUsed="true"/></td>
         <td></td>
     </tr>

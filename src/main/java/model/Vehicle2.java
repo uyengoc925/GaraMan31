@@ -7,7 +7,6 @@ public class Vehicle2 {
     private String vehicleType;
     private String color;
     private String description;
-    private Customer2 customer;
 
     public Vehicle2() {}
 
@@ -28,7 +27,13 @@ public class Vehicle2 {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-
-    public Customer2 getCustomer() { return customer; }
-    public void setCustomer(Customer2 customer) { this.customer = customer; }
+    // Trả về biển số chuẩn hóa dạng 30H-123.45, hoặc null nếu không hợp lệ
+    public static String normalizeLicensePlate(String input) {
+        if (input == null) return null;
+        String s = input.replaceAll("[\\s.\\-]", "").toUpperCase(java.util.Locale.ROOT);
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("^(\\d{2})([A-Z]{1,2})(\\d{3})(\\d{2})$").matcher(s);
+        if (!m.matches()) return null;
+        return m.group(1) + m.group(2) + "-" + m.group(3) + "." + m.group(4);
+    }
 }
