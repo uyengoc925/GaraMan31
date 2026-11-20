@@ -16,6 +16,6 @@
 </head>
 <body>
 <h1>TRANG CHỦ</h1>
-<a href="ViewReportMenu.jsp" class="btn-main">Xem báo cáo</a>
+<a href="ViewReportMenu2.jsp" class="btn-main">Xem báo cáo</a>
 </body>
 </html>

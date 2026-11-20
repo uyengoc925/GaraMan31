@@ -59,18 +59,18 @@
 <body>
 <h2>HÓA ĐƠN NHẬP KHO CHI TIẾT</h2>
 
-<a href="ViewSupplierImportHistory.jsp?idSupplier=${idSupplier}&startDate=${startDate}&endDate=${endDate}" class="btn-back">Quay lại</a>
+<a href="ViewSupplierImportHistory2.jsp?idSupplier=${idSupplier}&startDate=${startDate}&endDate=${endDate}" class="btn-back">Quay lại</a>
 
 <div class="invoice-info">
     <div class="info-col">
         <p><strong>Phiếu nhập:</strong> ${receiptCode}</p>
-        <p><strong>Nhà cung cấp:</strong> ${receipt.supplier.supplierName} (NCC<fmt:formatNumber value="${receipt.supplier.id}" pattern="000"/>)</p>
+        <p><strong>Nhà cung cấp:</strong> ${receipt.supplier.supplierName} (NCC<fmt:formatNumber value="${receipt.supplier.id}" pattern="000000"/>)</p>
         <p><strong>Địa chỉ NCC:</strong> ${receipt.supplier.address}</p>
         <p><strong>Mã số thuế:</strong> ${receipt.supplier.taxCode}</p>
     </div>
     <div class="info-col">
         <p><strong>Thời gian nhập kho:</strong> ${formattedDateTime}</p>
-        <p><strong>Nhân viên nhập kho:</strong> ${receipt.warehouseStaff.fullName} (NV<fmt:formatNumber value="${receipt.warehouseStaff.id}" pattern="000"/>)</p>
+        <p><strong>Nhân viên nhập kho:</strong> ${receipt.warehouseStaff.fullName} (NV<fmt:formatNumber value="${receipt.warehouseStaff.id}" pattern="000000"/>)</p>
         <p><strong>Số điện thoại NCC:</strong> ${receipt.supplier.phoneNumber}</p>
     </div>
 </div>

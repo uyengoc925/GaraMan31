@@ -61,12 +61,12 @@
 <div class="header-section">
     <div class="info-box">
         <p><strong>THÔNG TIN NHÀ CUNG CẤP:</strong></p>
-        <p><strong>Mã nhà cung cấp:</strong> NCC<fmt:formatNumber value="${supplier.id}" pattern="000"/></p>
+        <p><strong>Mã nhà cung cấp:</strong> NCC<fmt:formatNumber value="${supplier.id}" pattern="000000"/></p>
         <p><strong>Khoảng thời gian:</strong> ${displayDateRange}</p>
         <p><strong>Tên nhà cung cấp:</strong> ${supplier.supplierName}</p>
     </div>
     <div>
-        <a href="ViewSupplierStatistics.jsp?startDate=${startDate}&endDate=${endDate}" class="btn-back">Quay lại</a>
+        <a href="ViewSupplierStatistics2.jsp?startDate=${startDate}&endDate=${endDate}" class="btn-back">Quay lại</a>
     </div>
 </div>
 
@@ -87,13 +87,13 @@
     <c:forEach var="receipt" items="${listReceipts}" varStatus="loop">
         <tr>
             <td>${loop.index + 1}</td>
-            <td>PN<fmt:parseDate value="${receipt.importDateTime}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDate" /><fmt:formatDate value="${parsedDate}" pattern="yyyyMMdd" />-<fmt:formatNumber value="${receipt.id}" pattern="00"/></td>
+            <td>PN<fmt:formatNumber value="${receipt.id}" pattern="000000"/></td>
             <td><fmt:parseDate value="${receipt.importDateTime}" pattern="yyyy-MM-dd'T'HH:mm" var="pDate" /><fmt:formatDate value="${pDate}" pattern="dd/MM/yyyy HH:mm:ss" /></td>
-            <td>NV<fmt:formatNumber value="${receipt.warehouseStaff.id}" pattern="000"/></td>
+            <td>NV<fmt:formatNumber value="${receipt.warehouseStaff.id}" pattern="000000"/></td>
             <td style="text-align: right;" >${receipt.totalQuantity}</td>
             <td style="text-align: right;"><fmt:formatNumber value="${receipt.totalImportAmount}" type="number" groupingUsed="true"/></td>
             <td>
-                <a class="link-detail" href="ViewImportReceiptDetail.jsp?idReceipt=${receipt.id}&idSupplier=${supplier.id}&startDate=${startDate}&endDate=${endDate}">Xem hóa đơn</a>
+                <a class="link-detail" href="ViewImportReceiptDetail2.jsp?idReceipt=${receipt.id}&idSupplier=${supplier.id}&startDate=${startDate}&endDate=${endDate}">Xem hóa đơn</a>
             </td>
         </tr>
     </c:forEach>

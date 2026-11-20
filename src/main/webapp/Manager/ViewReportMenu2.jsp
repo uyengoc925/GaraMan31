@@ -21,8 +21,8 @@
 <body>
 <h1>XEM BÁO CÁO</h1>
 <div class="btn-group">
-    <a href="ViewSupplierStatistics.jsp" class="btn-primary">Nhà cung cấp</a>
-    <a href="ViewHome.jsp" class="btn-secondary">Quay lại</a>
+    <a href="ViewSupplierStatistics2.jsp" class="btn-primary">Nhà cung cấp</a>
+    <a href="ViewHome2.jsp" class="btn-secondary">Quay lại</a>
 </div>
 </body>
 </html>

@@ -78,7 +78,7 @@
 <c:if test="${not empty errorMessage}">
     <p style="color: red; font-weight: bold;">${errorMessage}</p>
 </c:if>
-<form method="GET" action="ViewSupplierStatistics.jsp">
+<form method="GET" action="ViewSupplierStatistics2.jsp">
     <div class="filter-box">
         <div class="filter-inputs">
             <span>CHỌN KHOẢNG THỜI GIAN TRA CỨU</span><br><br>
@@ -86,7 +86,7 @@
             Đến ngày (*): <input type="date" id="endDate" name="endDate" value="${endDate}" min="${startDate}" required>
         </div>
         <div class="action-btns">
-            <a href="ViewReportMenu.jsp" class="btn-action">Quay lại</a>
+            <a href="ViewReportMenu2.jsp" class="btn-action">Quay lại</a>
             <button type="submit" class="btn-submit">Xem thống kê</button>
         </div>
     </div>
@@ -113,13 +113,13 @@
             <c:forEach var="stat" items="${listStats}" varStatus="loop">
                 <tr>
                     <td>${loop.index + 1}</td>
-                    <td>NCC<fmt:formatNumber value="${stat.id}" pattern="000"/></td>
+                    <td>NCC<fmt:formatNumber value="${stat.id}" pattern="000000"/></td>
                     <td style="text-align: left;">${stat.supplierName}</td>
                     <td  class="num"> ${stat.totalImportReceipts}</td>
                     <td  class="num">${stat.totalImportQuantity}</td>
-                    <td  class="num" ><fmt:formatNumber value="${stat.totalImportValue}" type="number" groupingUsed="true"/></td>true"/></td>
+                    <td class="num"><fmt:formatNumber value="${stat.totalImportValue}" type="number" groupingUsed="true"/></td>
                     <td>
-                        <a class="link-detail" href="ViewSupplierImportHistory.jsp?idSupplier=${stat.id}&startDate=${startDate}&endDate=${endDate}">Xem chi tiết</a>
+                        <a class="link-detail" href="ViewSupplierImportHistory2.jsp?idSupplier=${stat.id}&startDate=${startDate}&endDate=${endDate}">Xem chi tiết</a>
                     </td>
                 </tr>
             </c:forEach>
@@ -132,7 +132,7 @@
                 <td colspan="3" style="text-align: left; font-weight: bold;">TỔNG CỘNG</td>
                 <td  class="num">${totalCountAll}</td>
                 <td  class="num">${totalQuantityAll}</td>
-                <td class="num"><fmt:formatNumber value="${stat.totalImportValue}" type="number" groupingUsed="true"/></td>
+                <td class="num"><fmt:formatNumber value="${totalValueAll}" type="number" groupingUsed="true"/></td>
                 <td></td>
             </tr>
         </c:otherwise>

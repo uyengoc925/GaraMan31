@@ -24,7 +24,7 @@ if (isValid && isManager) {
     request.getSession().setAttribute("username", username);
     request.getSession().setAttribute("user", employee2);
     // Chuyển hướng đến trang chính của ứng dụng
-    response.sendRedirect(request.getContextPath() + "/Manager/ViewHome.jsp");
+    response.sendRedirect(request.getContextPath() + "/Manager/ViewHome2.jsp");
 } else {
     // Nếu đăng nhập thất bại, chuyển hướng trở lại trang đăng nhập với thông báo lỗi
     response.sendRedirect("login.jsp?err=fail");
